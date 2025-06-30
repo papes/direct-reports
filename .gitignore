@@ -43,3 +43,6 @@ next-env.d.ts
 # claude.md files
 CLAUDE.md
 claude.md
+
+# data directory (contains employee data and uploaded files)
+/data/
