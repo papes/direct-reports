@@ -3,10 +3,11 @@ import { EmployeeDB } from '@/lib/database';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { content } = await request.json();
+    const { content, date } = await request.json();
+    const { id } = await params;
     
     if (!content) {
       return NextResponse.json(
@@ -15,7 +16,7 @@ export async function POST(
       );
     }
 
-    const feedback = await EmployeeDB.addFeedback(params.id, content);
+    const feedback = await EmployeeDB.addFeedback(id, content, date);
     return NextResponse.json(feedback, { status: 201 });
   } catch (error) {
     console.error('Error adding feedback:', error);

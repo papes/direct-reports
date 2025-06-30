@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { Employee, EmployeeDatabase, EmployeeNote, EmployeePraise, EmployeeFeedback } from '@/types/employee';
+import { Employee, EmployeeDatabase, EmployeeNote, EmployeePraise, EmployeeFeedback, SupportingDocument } from '@/types/employee';
 
 const DB_PATH = path.join(process.cwd(), 'data', 'employees.json');
 
@@ -56,7 +56,8 @@ export class EmployeeDB {
       startDate,
       notes: [],
       praise: [],
-      feedback: []
+      feedback: [],
+      performanceReviews: []
     };
 
     db.employees.push(newEmployee);
@@ -65,7 +66,7 @@ export class EmployeeDB {
     return newEmployee;
   }
 
-  static async addNote(employeeId: string, content: string): Promise<EmployeeNote> {
+  static async addNote(employeeId: string, content: string, date?: string, supportingDocuments?: SupportingDocument[]): Promise<EmployeeNote> {
     const db = await this.loadDatabase();
     const employee = db.employees.find(emp => emp.id === employeeId);
     
@@ -75,8 +76,9 @@ export class EmployeeDB {
 
     const note: EmployeeNote = {
       id: uuidv4(),
-      date: new Date().toISOString(),
-      content
+      date: date ? new Date(date).toISOString() : new Date().toISOString(),
+      content,
+      supportingDocuments: supportingDocuments || []
     };
 
     employee.notes.push(note);
@@ -85,7 +87,7 @@ export class EmployeeDB {
     return note;
   }
 
-  static async addPraise(employeeId: string, content: string): Promise<EmployeePraise> {
+  static async addPraise(employeeId: string, content: string, date?: string): Promise<EmployeePraise> {
     const db = await this.loadDatabase();
     const employee = db.employees.find(emp => emp.id === employeeId);
     
@@ -95,7 +97,7 @@ export class EmployeeDB {
 
     const praise: EmployeePraise = {
       id: uuidv4(),
-      date: new Date().toISOString(),
+      date: date ? new Date(date).toISOString() : new Date().toISOString(),
       content
     };
 
@@ -105,7 +107,7 @@ export class EmployeeDB {
     return praise;
   }
 
-  static async addFeedback(employeeId: string, content: string): Promise<EmployeeFeedback> {
+  static async addFeedback(employeeId: string, content: string, date?: string): Promise<EmployeeFeedback> {
     const db = await this.loadDatabase();
     const employee = db.employees.find(emp => emp.id === employeeId);
     
@@ -115,7 +117,7 @@ export class EmployeeDB {
 
     const feedback: EmployeeFeedback = {
       id: uuidv4(),
-      date: new Date().toISOString(),
+      date: date ? new Date(date).toISOString() : new Date().toISOString(),
       content
     };
 
@@ -123,6 +125,20 @@ export class EmployeeDB {
     await this.saveDatabase(db);
     
     return feedback;
+  }
+
+  static async addPerformanceReview(employeeId: string, document: SupportingDocument): Promise<SupportingDocument> {
+    const db = await this.loadDatabase();
+    const employee = db.employees.find(emp => emp.id === employeeId);
+    
+    if (!employee) {
+      throw new Error('Employee not found');
+    }
+
+    employee.performanceReviews.push(document);
+    await this.saveDatabase(db);
+    
+    return document;
   }
 
   static async exportToJSON(): Promise<string> {
